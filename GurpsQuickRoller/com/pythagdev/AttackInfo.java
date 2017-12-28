@@ -19,33 +19,33 @@ public class AttackInfo {
 		int attackRoll = random.nextRoll();
 		switch (getEffect(attackRoll, attackerSkill)) {
 		case CRITICAL_SUCCESS:
-			return new AttackResults("Critical Hit (p202) for attacker! " + getCriticalSuccessString(random));
+			return new AttackResults("Critical Hit (p202) for attacker!",  getCriticalSuccessString(random));
 		case CRITICAL_FAILURE:
-			return new AttackResults("Critical Miss (p202) for attacker! " + getCriticalFailureString(random));
+			return new AttackResults("Critical Miss (p202) for attacker! ", getCriticalFailureString(random));
 		case SUCCESS:
 			int defenseRoll = random.nextRoll();
 			switch (getEffect(defenseRoll, defenderSkill)) {
 			case CRITICAL_SUCCESS:
 				return new AttackResults("Active Defense - Critical Success! Attacker has a Critical Miss (p202) "
-						+ "(ignore this if the attack was ranged)! " + getCriticalFailureString(random));
+						+ "(ignore this if the attack was ranged)!", getCriticalFailureString(random));
 			case CRITICAL_FAILURE:	//p110
 				//TODO - p110 - Maybe 17 is always critical failure???
 				int damage2 = random.rollDamage(attackDamage);
-				return new AttackResults("Active Defense - Critical Failure (p110)! Defender: if dodging, falls over; "
+				return new AttackResults("Active Defense - Critical Failure (p110)!", "Defender: if dodging, falls over; "
 						+ "if blocking, shield needs to be readied next turn before being used for an active defense; "
 						+ "if parrying, defender rolls against Critical Miss table (p202). Also, attack did "
 						+ modForDR(damage2) + " damage.");
 			case SUCCESS:
-				return new AttackResults("Attack blocked.");
+				return new AttackResults("Attack blocked.", null);
 			case FAILURE:
 				int damage = random.rollDamage(attackDamage);
-				return new AttackResults("Attack did " + modForDR(damage) + " damage.");
+				return new AttackResults("Attack did " + modForDR(damage) + " damage.", null);
 			}
-			return new AttackResults("OK. Seriously? How did we get a null effect from a defenseRoll of " + defenseRoll + "?");
+			return new AttackResults("OK. Seriously? How did we get a null effect from a defenseRoll of " + defenseRoll + "?", null);
 		case FAILURE:
-			return new AttackResults("Attack failed.");
+			return new AttackResults("Attack failed.", null);
 		}
-		return new AttackResults("OK. Seriously? How did we get a null effect from an attackRoll of " + attackRoll + "?");
+		return new AttackResults("OK. Seriously? How did we get a null effect from an attackRoll of " + attackRoll + "?", null);
 	}
 
 	private String getCriticalSuccessString(Dice random) {	//Page 202, Critical Success Table

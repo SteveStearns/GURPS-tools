@@ -51,7 +51,8 @@ public class GurpsQuickRollerMain {
 		private final JTextField runCount = new JTextField("5", 5);
 		private final JButton runButton = new JButton("Run");
 
-		private final JTextArea results = new JTextArea(30, 500);
+		private final TextTree results = new TextTree();
+		private final JScrollPane scrollPane = new JScrollPane(results.getTree());
 		
 		public TextFrame() {
 			setTitle("GURPS - Quick Attack/Defense Roller");
@@ -90,7 +91,9 @@ public class GurpsQuickRollerMain {
 
 			constraints = gbc(0, 3, 7, 1, GridBagConstraints.BOTH);
 			constraints.weighty = 10;
-			add(new JScrollPane(results), constraints);
+			
+			scrollPane.setHorizontalScrollBarPolicy(scrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+			add(scrollPane, constraints);
 		}
 
 		private static GridBagConstraints gbc(int x, int y, int width, int height) {
@@ -126,12 +129,17 @@ public class GurpsQuickRollerMain {
 				Dice random = new Dice();
 				
 				//Now that we have everything collected, we can run the simulation and print results to screen
-				results.append("===Running " + iterations + " iterations; " + info + "\n");
+				results.addText("===Running " + iterations + " iterations; " + info + "===");
+				results.addLevel();		// Nest these iterations together
 				for (int n = 0; n < iterations; ++n) {
 					AttackResults attackResults = info.run(random);
-					results.append("#" + n + ": " + attackResults + "\n");
+					results.addText("#" + n + ": " + attackResults.getMessage());
+					results.addLevel();
+					results.addText(attackResults.getInfo1());
+					results.endLevel();
 				}
-				results.append("\n");
+				//textArea.append("\n");
+				results.endLevel();
 			} catch (NumberFormatException ignored) {	
 			}
 		}
