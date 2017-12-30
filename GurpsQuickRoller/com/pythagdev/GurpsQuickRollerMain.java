@@ -8,10 +8,15 @@ import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import java.util.*;
+import com.pythagdev.JsonController;
 
 public class GurpsQuickRollerMain {
-
+	public static JsonController jCtrl = null;
 	public static void main(String[] args) {
+		if (args.length == 1) {
+			jCtrl = new JsonController(args[0]);
+		}
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				//display screen
@@ -117,22 +122,76 @@ public class GurpsQuickRollerMain {
 		@Override
 		public void actionPerformed(ActionEvent action) {
 			try {
-				//Get all info, and make sure we _have_ all info
-				AttackInfo info = new AttackInfo();
-				info.attackerSkill = parseInt(attackerSkill);
-				info.attackDamage = new DamageSpecification(parseInt(attackDice), parseInt(attackFixed));
-				info.defenderSkill = parseInt(defenderSkill);
-				info.damageResistance = parseInt(defenderDR);
-				
+				String sAttack = null;
+				String sDefend = null;
 				int iterations = parseInt(runCount);
+				// Here's the deal, we use a JSON file rather than a generic 10,
+				// if and only if the json file is present.
+				// We eventually have a Goon-generator and a Google-sheets reader to create json files.
+				if (jCtrl != null) {
+					sAttack = jCtrl.getString("AttackerFile");
+					sDefend = jCtrl.getString("DefenderFile");
+				}
+				
+				//Get all info, and make sure we _have_ all info
+				ArrayList<AttackInfo> infoArray = new ArrayList<AttackInfo>();
+				JsonController jAttack = null;
+				JsonController jDefend = null;
+				try {
+					jAttack = new JsonController(sAttack);
+					jAttack.setArray("Players");
+				} catch (Exception e) {
+					jAttack = null;
+				}
+				try {
+					jDefend = new JsonController(sDefend);
+					jDefend.setArray("Players");
+				} catch (Exception e) {
+					jDefend = null;
+				}
+//				The JSON files might not be as large as the runCount field. Avoid a crash.
+				int maxIterate = iterations;
+				if ((jAttack != null) && (jDefend != null))
+					maxIterate = Integer.min(jAttack.getArray().size(), jDefend.getArray().size());
+				else {
+					if (jAttack != null) maxIterate = jAttack.getArray().size();
+					if (jDefend != null) maxIterate = jDefend.getArray().size();
+				}
+				for (int i = 0; i < maxIterate; ++i) {
+					AttackInfo info = new AttackInfo();
+					int iFixed, iDice;
+					if (jAttack == null) {
+						info.attackerSkill = parseInt(attackerSkill);
+						iFixed = parseInt(attackFixed);
+						iDice = parseInt(attackDice);
+					}
+					else {
+						info.attackName = jAttack.getString(i,"Attacker");
+						info.attackerSkill = jAttack.getInt(i,"AttackSkill");
+						iFixed = jAttack.getInt(i, "AttackFixed");
+						iDice = jAttack.getInt(i, "AttackDice");
+					} 
+					info.attackDamage = new DamageSpecification(iDice, iFixed);
+					if (jDefend == null) {
+						info.defenderSkill = parseInt(defenderSkill);
+						info.damageResistance = parseInt(defenderDR);						
+					}
+					else {
+						info.defendName = jDefend.getString(i,"Defender");
+						info.defenderSkill = jDefend.getInt(i, "DefendSkill");
+						info.damageResistance = jDefend.getInt(i, "DR");
+					}
+					infoArray.add(info);
+				}
 				
 				Dice random = new Dice();
 				
 				//Now that we have everything collected, we can run the simulation and print results to screen
-				results.addText("===Running " + iterations + " iterations; " + info + "===");
+				results.addText("===Running " + maxIterate + " iterations ===");
 				results.addLevel();		// Nest these iterations together
-				for (int n = 0; n < iterations; ++n) {
-					AttackResults attackResults = info.run(random);
+				for (int n = 0; n < maxIterate; ++n) {
+					results.addText("=== iteration; " + infoArray.get(n) + " ===");
+					AttackResults attackResults = infoArray.get(n).run(random);
 					results.addText("#" + n + ": " + attackResults.getMessage());
 					results.addLevel();
 					results.addText(attackResults.getInfo1());

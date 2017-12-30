@@ -6,11 +6,13 @@ import com.pythagdev.Dice;
 // import com.pythagdev.AttackInfo.DiceResult;
 
 public class AttackInfo {
+	public String attackName = "attacker";
 	public int attackerSkill = 10;
 	public DamageSpecification attackDamage;
 	//TODO - if ranged: distance, cover
 	//TODO - hit location attempt?
-	public int defenderSkill = 10;	//TODO - calculate this?
+	public String defendName = "defender";
+	public int defenderSkill = 10;
 	//TODO - isUnarmedWithParry?
 	public int damageResistance = 0;
 
@@ -165,7 +167,7 @@ public class AttackInfo {
 	
 	@Override
 	public String toString() {
-		return "attacker skill=" + attackerSkill + ", attack damage=" + attackDamage.dice + "d+" + attackDamage.flat +
-				", defender skill=" + defenderSkill + ", defender DR=" + damageResistance;
+		return attackName + " skill=" + attackerSkill + ", attack damage=" + attackDamage.dice + "d+" + attackDamage.flat +
+				", " + defendName + " skill=" + defenderSkill + ", defender DR=" + damageResistance;
 	}
 }
